@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.awt.event.KeyEvent;
 
 import edu.princeton.cs.introcs.StdDraw;
 
@@ -8,26 +7,23 @@ public class Game {
 	final static double lower_bound = 0.005;
 	final static double upper_bound = 0.01;
 	final static double radius = 0.025;
-	final static double player_speed = 0.01;
 
 	private int ball_count;
 	private int score;
 	private int high_score;
-	private double player_x;
-	private double player_y;
 	private double[] ball_x_vals;
 	private double[] ball_y_vals;
 	private double[] ball_x_vals_bounded;
 	private double[] ball_y_vals_bounded;
 	private long score_timer;
 	private long round_time;
+	private Player player;
 
 	public Game() {
+		this.player = new Player();
 		this.ball_count = 3;
 		this.score = 0;
 		this.high_score = 0;
-		this.player_x = 0.5;
-		this.player_y = 0.5;
 		this.ball_x_vals = new double[ball_count];
 		this.ball_y_vals = new double[ball_count];
 		this.ball_x_vals_bounded = new double[ball_count];
@@ -58,14 +54,15 @@ public class Game {
 		StdDraw.clear();
 
 		handle_collision();
-		handle_player_input();
-		handle_player_bounds();
-		
+		player.handle_input();
+		player.handle_bounds();
+
 		check_score_timer();
 		check_difficulty_timer();
 
 		draw_enemies();
-		draw_player();
+		player.draw();
+		draw_score();
 		draw_frame();
 	}
 
@@ -99,7 +96,7 @@ public class Game {
 	private void handle_player_collision() {
 		boolean player_collision = false;
 		for (int i = 0; i < ball_count; i++) {
-			double distance_to_player = Math.sqrt(Math.pow(ball_x_vals[i] - player_x, 2) + Math.pow(ball_y_vals[i] - player_y, 2));
+			double distance_to_player = Math.sqrt(Math.pow(ball_x_vals[i] - player.get_x(), 2) + Math.pow(ball_y_vals[i] - player.get_y(), 2));
 			if (distance_to_player < 2 * radius) {
 				player_collision = true;
 			}
@@ -114,39 +111,9 @@ public class Game {
 				score = 0;
 				score_timer = System.currentTimeMillis();
 				round_time = System.currentTimeMillis();
-				player_x = 0.5;
-				player_y = 0.5;
+				player.set_x(0.5);
+				player.set_y(0.5);
 			}
-		}
-	}
-
-	private void handle_player_input() {
-		if(StdDraw.isKeyPressed(KeyEvent.VK_W)) {
-			player_y = player_y + player_speed;
-		}
-		if(StdDraw.isKeyPressed(KeyEvent.VK_S)) {
-			player_y = player_y - player_speed;
-		}
-		if(StdDraw.isKeyPressed(KeyEvent.VK_A)) {
-			player_x = player_x - player_speed;
-		}
-		if(StdDraw.isKeyPressed(KeyEvent.VK_D)) {
-			player_x = player_x + player_speed;
-		}
-	}
-
-	private void handle_player_bounds() {
-		if(player_x > 1) {
-			player_x = 1;
-		}
-		if(player_x < 0) {
-			player_x = 0;
-		}
-		if(player_y > 1) {
-			player_y = 1;
-		}
-		if(player_y < 0) {
-			player_y = 0;
 		}
 	}
 
@@ -197,9 +164,8 @@ public class Game {
 		}
 	}
 
-	private void draw_player() {
+	private void draw_score() {
 		StdDraw.setPenColor(Color.black);
-		StdDraw.filledCircle(player_x, player_y, radius);
 		StdDraw.text(0.5, 0.1, "Score: " + score + " High Score: " + high_score);
 	}
 
